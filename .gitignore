@@ -1,0 +1,28 @@
+# Build
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+
+# Variáveis de ambiente e segredos
+.env
+*.env.local
+
+# Maven Wrapper (o jar é baixado automaticamente, não precisa versionar)
+.mvn/wrapper/maven-wrapper.jar
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
