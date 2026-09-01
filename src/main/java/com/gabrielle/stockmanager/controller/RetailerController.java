@@ -2,6 +2,7 @@ package com.gabrielle.stockmanager.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gabrielle.stockmanager.dto.RetailerRequestDTO;
@@ -28,7 +29,7 @@ public class RetailerController {
     }
 
     @PostMapping
-    public ResponseEntity<RetailerResponseDTO> create(@RequestBody RetailerRequestDTO dto) {
+    public ResponseEntity<RetailerResponseDTO> create(@Valid @RequestBody RetailerRequestDTO dto) {
         RetailerResponseDTO created = retailerService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -44,7 +45,7 @@ public class RetailerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RetailerResponseDTO> update(@PathVariable Long id, @RequestBody RetailerRequestDTO dto) {
+    public ResponseEntity<RetailerResponseDTO> update(@PathVariable Long id, @Valid @RequestBody RetailerRequestDTO dto) {
         return ResponseEntity.ok(retailerService.update(id, dto));
     }
 

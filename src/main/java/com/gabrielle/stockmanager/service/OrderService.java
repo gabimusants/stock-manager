@@ -3,6 +3,7 @@ package com.gabrielle.stockmanager.service;
 import com.gabrielle.stockmanager.dto.OrderItemRequestDTO;
 import com.gabrielle.stockmanager.dto.OrderRequestDTO;
 import com.gabrielle.stockmanager.dto.OrderResponseDTO;
+import com.gabrielle.stockmanager.exception.ResourceNotFoundException;
 import com.gabrielle.stockmanager.mapper.OrderMapper;
 import com.gabrielle.stockmanager.model.*;
 import com.gabrielle.stockmanager.repository.OrderRepository;
@@ -36,7 +37,7 @@ public class OrderService {
 
     public OrderResponseDTO create(OrderRequestDTO dto) {
         Retailer retailer = retailerRepository.findById(dto.retailerId())
-                .orElseThrow(() -> new RuntimeException("Retailer não encontrado: " + dto.retailerId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Retailer não encontrado: " + dto.retailerId()));
 
         Order order = new Order();
         order.setRetailer(retailer);
@@ -47,7 +48,7 @@ public class OrderService {
 
         for (OrderItemRequestDTO itemDto : dto.items()) {
             Product product = productRepository.findById(itemDto.productId())
-                    .orElseThrow(() -> new RuntimeException("Produto não encontrado: " + itemDto.productId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + itemDto.productId()));
 
             OrderItem item = new OrderItem();
             item.setProduct(product);
@@ -75,7 +76,7 @@ public class OrderService {
 
     public OrderResponseDTO findById(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order não encontrado: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Order não encontrado: " + id));
         return orderMapper.toResponseDTO(order);
     }
 }
