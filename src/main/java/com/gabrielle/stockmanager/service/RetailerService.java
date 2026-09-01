@@ -2,6 +2,7 @@ package com.gabrielle.stockmanager.service;
 
 import java.util.List;
 
+import com.gabrielle.stockmanager.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.gabrielle.stockmanager.dto.RetailerRequestDTO;
@@ -35,13 +36,13 @@ public class RetailerService {
 
     public RetailerResponseDTO findById(Long id) {
         Retailer retailer = retailerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Retailer not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Retailer not found with id: " + id));
         return retailerMapper.toResponseDTO(retailer);
     }
 
     public RetailerResponseDTO update(Long id, RetailerRequestDTO dto) {
         Retailer retailer = retailerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Retailer not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Retailer not found with id: " + id));
         retailer.setCompanyName(dto.companyName());
         retailer.setCnpj(dto.cnpj());
         retailer.setEmail(dto.email());
@@ -52,7 +53,7 @@ public class RetailerService {
 
     public void delete(Long id) {
         if (!retailerRepository.existsById(id)) {
-            throw new RuntimeException("Retailer not found with id: " + id);
+            throw new ResourceNotFoundException("Retailer not found with id: " + id);
         }
         retailerRepository.deleteById(id);
     }

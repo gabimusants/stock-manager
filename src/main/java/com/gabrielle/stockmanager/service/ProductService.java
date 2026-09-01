@@ -2,6 +2,7 @@ package com.gabrielle.stockmanager.service;
 
 import com.gabrielle.stockmanager.dto.ProductRequestDTO;
 import com.gabrielle.stockmanager.dto.ProductResponseDTO;
+import com.gabrielle.stockmanager.exception.ResourceNotFoundException;
 import com.gabrielle.stockmanager.mapper.ProductMapper;
 import com.gabrielle.stockmanager.model.Product;
 import com.gabrielle.stockmanager.repository.ProductRepository;
@@ -35,13 +36,13 @@ public class ProductService {
 
     public ProductResponseDTO findById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + id));
         return productMapper.toResponseDTO(product);
     }
 
     public ProductResponseDTO update(Long id, ProductRequestDTO dto) {
         Product existing = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + id));
 
         existing.setSku(dto.sku());
         existing.setName(dto.name());
@@ -55,7 +56,7 @@ public class ProductService {
 
     public void delete(Long id) {
         if (!productRepository.existsById(id)) {
-            throw new RuntimeException("Produto não encontrado: " + id);
+            throw new ResourceNotFoundException("Produto não encontrado: " + id);
         }
         productRepository.deleteById(id);
     }
