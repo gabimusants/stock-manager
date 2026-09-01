@@ -150,8 +150,8 @@ precisam do Postgres/Docker rodando.
 - [x] Testes unitários das entidades
 - [x] Repositories (Spring Data JPA)
 - [x] Camadas Controller/Service/DTO/Mapper para Product e Retailer
-- [ ] Controller/Service/DTO para Order/OrderItem (com relacionamentos)
-- [ ] Validação de dados e tratamento centralizado de exceções
+- [x] Controller/Service/DTO para Order/OrderItem (com relacionamentos)
+- [x] Validação de dados e tratamento centralizado de exceções
 - [ ] Testes unitários de Service (Mockito) e de integração (Testcontainers)
 - [ ] Regras de negócio (baixa de estoque, transições de status)
 - [ ] Spring Security (JWT)
