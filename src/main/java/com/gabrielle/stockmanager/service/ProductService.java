@@ -1,5 +1,8 @@
 package com.gabrielle.stockmanager.service;
 
+import com.gabrielle.stockmanager.client.CatalogServiceClient;
+import com.gabrielle.stockmanager.dto.CatalogItemDTO;
+import com.gabrielle.stockmanager.dto.ProductEnrichedResponseDTO;
 import com.gabrielle.stockmanager.dto.ProductRequestDTO;
 import com.gabrielle.stockmanager.dto.ProductResponseDTO;
 import com.gabrielle.stockmanager.exception.ResourceNotFoundException;
@@ -9,16 +12,19 @@ import com.gabrielle.stockmanager.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final CatalogServiceClient catalogServiceClient;
 
-    public ProductService(ProductRepository productRepository, ProductMapper productMapper) {
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper, CatalogServiceClient catalogServiceClient) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
+        this.catalogServiceClient = catalogServiceClient;
     }
 
     public ProductResponseDTO create(ProductRequestDTO dto) {
@@ -38,6 +44,13 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + id));
         return productMapper.toResponseDTO(product);
+    }
+
+    public ProductEnrichedResponseDTO findByIdEnriched(Long id) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + id));
+        Optional<CatalogItemDTO> catalogInfo = catalogServiceClient.findBySku(product.getSku());
+
+        return new ProductEnrichedResponseDTO(productMapper.toResponseDTO(product), catalogInfo.map(CatalogItemDTO::attributes).orElse(null));
     }
 
     public ProductResponseDTO update(Long id, ProductRequestDTO dto) {

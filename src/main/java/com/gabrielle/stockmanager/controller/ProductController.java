@@ -1,5 +1,6 @@
 package com.gabrielle.stockmanager.controller;
 
+import com.gabrielle.stockmanager.dto.ProductEnrichedResponseDTO;
 import com.gabrielle.stockmanager.dto.ProductRequestDTO;
 import com.gabrielle.stockmanager.dto.ProductResponseDTO;
 import com.gabrielle.stockmanager.service.ProductService;
@@ -34,6 +35,11 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.findById(id));
+    }
+
+    @GetMapping("/{id}/enriched")
+    public ResponseEntity<ProductEnrichedResponseDTO> findByIdEnriched(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.findByIdEnriched(id));
     }
 
     @PutMapping("/{id}")
