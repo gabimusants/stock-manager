@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/${DB_NAME:stockmanager}
+    url: jdbc:postgresql://localhost:5433/${DB_NAME:stockmanager}
     username: ${DB_USERNAME:stockmanager_user}
     password: ${DB_PASSWORD}
   jpa:
@@ -16,3 +16,6 @@ management:
     web:
       exposure:
         include: health,info
+
+catalog-service:
+  base-url: ${CATALOG_SERVICE_URL:http://localhost:8081}

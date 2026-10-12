@@ -16,12 +16,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                "Recurso não encontrado",
-                ex.getMessage(),
-                LocalDateTime.now()
-        );
+        ErrorResponse error = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Recurso não encontrado", ex.getMessage(), LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
@@ -32,5 +27,17 @@ public class GlobalExceptionHandler {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientStock(InsufficientStockException ex) {
+        ErrorResponse error = new ErrorResponse(HttpStatus.CONFLICT.value(), "Estoque insuficiente", ex.getMessage(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidOrderStatusTransitionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidOrderStatus(InvalidOrderStatusTransitionException ex) {
+        ErrorResponse error = new ErrorResponse(HttpStatus.CONFLICT.value(), "Transição de status inválida", ex.getMessage(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 }

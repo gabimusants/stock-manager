@@ -2,6 +2,7 @@ package com.gabrielle.stockmanager.controller;
 
 import com.gabrielle.stockmanager.dto.OrderRequestDTO;
 import com.gabrielle.stockmanager.dto.OrderResponseDTO;
+import com.gabrielle.stockmanager.model.OrderStatus;
 import com.gabrielle.stockmanager.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -34,5 +35,10 @@ public class OrderController {
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.findById(id));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<OrderResponseDTO> updateStatus(@PathVariable Long id, @RequestBody OrderStatus newStatus) {
+        return ResponseEntity.ok(orderService.updateStatus(id, newStatus));
     }
 }

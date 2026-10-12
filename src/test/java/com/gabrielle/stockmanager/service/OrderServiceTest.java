@@ -1,6 +1,7 @@
 package com.gabrielle.stockmanager.service;
 
 import com.gabrielle.stockmanager.dto.*;
+import com.gabrielle.stockmanager.exception.InvalidOrderStatusTransitionException;
 import com.gabrielle.stockmanager.exception.ResourceNotFoundException;
 import com.gabrielle.stockmanager.mapper.OrderMapper;
 import com.gabrielle.stockmanager.model.*;
@@ -50,10 +51,12 @@ class OrderServiceTest {
         Product product1 = new Product();
         product1.setId(10L);
         product1.setPrice(new BigDecimal("5.00"));
+        product1.setStockQuantity(5);
 
         Product product2 = new Product();
         product2.setId(20L);
         product2.setPrice(new BigDecimal("3.50"));
+        product2.setStockQuantity(4);
 
         OrderRequestDTO requestDto = new OrderRequestDTO(
                 1L,
@@ -114,5 +117,78 @@ class OrderServiceTest {
                 .hasMessageContaining("999");
 
         verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    void updateStatus_paraCancelledDeveDevolverEstoqueDosItens() {
+        Product product = new Product();
+        product.setId(10L);
+        product.setStockQuantity(5); // estoque já reduzido por uma reserva anterior
+
+        OrderItem item = new OrderItem();
+        item.setProduct(product);
+        item.setQuantity(3);
+
+        Order order = new Order();
+        order.setId(1L);
+        order.setStatus(OrderStatus.PENDING);
+        order.addItem(item);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderMapper.toResponseDTO(order)).thenReturn(mock(OrderResponseDTO.class));
+
+        orderService.updateStatus(1L, OrderStatus.CANCELLED);
+
+        assertThat(product.getStockQuantity()).isEqualTo(8); // 5 + 3 devolvidos
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+    }
+
+    @Test
+    void updateStatus_deveLancarExcecaoParaTransicaoInvalida() {
+        Order order = new Order();
+        order.setId(1L);
+        order.setStatus(OrderStatus.SHIPPED); // status final
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> orderService.updateStatus(1L, OrderStatus.PENDING))
+                .isInstanceOf(InvalidOrderStatusTransitionException.class);
+    }
+
+    @Test
+    void create_deveConsolidarQuantidadesQuandoProdutoApareceDuasVezes() {
+        Retailer retailer = new Retailer();
+        retailer.setId(1L);
+
+        Product product = new Product();
+        product.setId(10L);
+        product.setPrice(new BigDecimal("5.00"));
+        product.setStockQuantity(20);
+
+        OrderRequestDTO requestDto = new OrderRequestDTO(
+                1L,
+                List.of(
+                        new OrderItemRequestDTO(10L, 2),
+                        new OrderItemRequestDTO(10L, 3)  // mesmo produto de novo
+                )
+        );
+
+        when(retailerRepository.findById(1L)).thenReturn(Optional.of(retailer));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(product));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(orderMapper.toResponseDTO(any(Order.class))).thenReturn(mock(OrderResponseDTO.class));
+
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+
+        orderService.create(requestDto);
+
+        verify(orderRepository).save(orderCaptor.capture());
+        Order savedOrder = orderCaptor.getValue();
+
+        // Deve ter APENAS 1 item (consolidado), não 2
+        assertThat(savedOrder.getItems()).hasSize(1);
+        assertThat(savedOrder.getItems().get(0).getQuantity()).isEqualTo(5); // 2 + 3
+        assertThat(savedOrder.getTotalAmount()).isEqualByComparingTo("25.00"); // 5 x 5.00
+        assertThat(product.getStockQuantity()).isEqualTo(15); // 20 - 5
     }
 }

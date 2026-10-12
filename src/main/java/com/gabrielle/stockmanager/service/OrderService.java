@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -44,20 +46,30 @@ public class OrderService {
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
 
+        Map<Long, Integer> quantidadesPorProduto = new LinkedHashMap<>();
+        for (OrderItemRequestDTO itemDto : dto.items()) {
+            quantidadesPorProduto.merge(itemDto.productId(), itemDto.quantity(), Integer::sum);
+        }
+
         BigDecimal total = BigDecimal.ZERO;
 
-        for (OrderItemRequestDTO itemDto : dto.items()) {
-            Product product = productRepository.findById(itemDto.productId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + itemDto.productId()));
+        for (Map.Entry<Long, Integer> entry : quantidadesPorProduto.entrySet()) {
+            Long productId = entry.getKey();
+            Integer quantity = entry.getValue();
+
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + productId));
+
+            product.reserveStock(quantity);
 
             OrderItem item = new OrderItem();
             item.setProduct(product);
-            item.setQuantity(itemDto.quantity());
+            item.setQuantity(quantity);
             item.setUnitPriceAtPurchase(product.getPrice());
 
             order.addItem(item);
 
-            BigDecimal subtotal = product.getPrice().multiply(BigDecimal.valueOf(itemDto.quantity()));
+            BigDecimal subtotal = product.getPrice().multiply(BigDecimal.valueOf(quantity));
             total = total.add(subtotal);
         }
 
@@ -77,6 +89,23 @@ public class OrderService {
     public OrderResponseDTO findById(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order não encontrado: " + id));
+        return orderMapper.toResponseDTO(order);
+    }
+
+    @Transactional
+    public OrderResponseDTO updateStatus(Long id, OrderStatus newStatus) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order não encontrado: " + id));
+
+        if (newStatus == OrderStatus.CANCELLED) {
+            // Regra de negócio: cancelamento devolve o estoque reservado
+            for (OrderItem item : order.getItems()) {
+                item.getProduct().releaseStock(item.getQuantity());
+            }
+        }
+
+        order.transitionTo(newStatus);
+
         return orderMapper.toResponseDTO(order);
     }
 }
