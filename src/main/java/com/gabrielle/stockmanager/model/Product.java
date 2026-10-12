@@ -1,5 +1,6 @@
 package com.gabrielle.stockmanager.model;
 
+import com.gabrielle.stockmanager.exception.InsufficientStockException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,4 +33,21 @@ public class Product {
 
     @Column(nullable = false)
     private Integer stockQuantity;
+
+    public void reserveStock(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantidade deve ser maior que zero");
+        }
+        if (this.stockQuantity < quantity) {
+            throw new InsufficientStockException(
+                    "Estoque insuficiente para o produto " + this.sku +
+                            ". Disponível: " + this.stockQuantity + ", solicitado: " + quantity
+            );
+        }
+        this.stockQuantity -= quantity;
+    }
+
+    public void releaseStock(int quantity) {
+        this.stockQuantity += quantity;
+    }
 }

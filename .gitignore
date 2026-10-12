@@ -16,6 +16,7 @@ bin/
 # Variáveis de ambiente e segredos
 .env
 *.env.local
+dev.ps1
 
 # Maven Wrapper (o jar é baixado automaticamente, não precisa versionar)
 .mvn/wrapper/maven-wrapper.jar

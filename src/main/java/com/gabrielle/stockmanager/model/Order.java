@@ -1,5 +1,6 @@
 package com.gabrielle.stockmanager.model;
 
+import com.gabrielle.stockmanager.exception.InvalidOrderStatusTransitionException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -48,5 +49,20 @@ public class Order {
     public void removeItem(OrderItem item) {
         items.remove(item);
         item.setOrder(null);
+    }
+
+    public void transitionTo(OrderStatus newStatus) {
+        boolean valid = switch (this.status) {
+            case PENDING -> newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELLED;
+            case CONFIRMED -> newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELLED;
+            case SHIPPED -> false; // status final, não pode mudar
+            case CANCELLED -> false; // status final, não pode mudar
+        };
+
+        if (!valid) {
+            throw new InvalidOrderStatusTransitionException("Não é possível mudar o status de " + this.status + " para " + newStatus);
+        }
+
+        this.status = newStatus;
     }
 }
